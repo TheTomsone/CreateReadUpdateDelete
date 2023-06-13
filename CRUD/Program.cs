@@ -1,6 +1,7 @@
 ﻿using CRUD;
 using System.Collections;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Text;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -8,43 +9,62 @@ public class VideoGameCatalogue
 {
     private static ConsoleKey keyInput;
 
-    private static List<CRUD.Type> typesList = Enum.GetValues(typeof(CRUD.Type)).Cast<CRUD.Type>().ToList();
+    private static StringBuilder[] table;
 
+    private static List<CRUD.Type> typesList = Enum.GetValues(typeof(CRUD.Type)).Cast<CRUD.Type>().ToList();
     private static Dictionary<int, VideoGame> dictVideoGames = new Dictionary<int, VideoGame>();
 
-    private static StringBuilder[] table;
+    private static int[] selection;
 
     private static int currentPlacement;
     private static void Main(string[] args)
     {
+        CRUDLogic();
+    }
 
+    private static void CRUDLogic()
+    {
+        currentPlacement = 0;
         while (true)
         {
-            table = CreateTableList(15);
+            table = CreateTableList(dictVideoGames.Count);
             DisplayTable();
-            Console.WriteLine("|+|\t:\tAjouter\n\n|▲||▼|\t:\tNavigation\n|DEL|\t:\tSupprimer\n|INSERT|:\tModifier\n|ENTER|\t:\tDétails\n\n|ESC|\t:\tQuitter");
+            Console.WriteLine("|+|\t:\tAjouter\n\n|▲||▼|\t:\tNavigation\n|DEL|\t:\tSupprimer\n|ENTER|\t:\tModifier\n\n|ESC|\t:\tQuitter");
             keyInput = Console.ReadKey(true).Key;
             switch (keyInput)
             {
                 case ConsoleKey.Add:
                     Console.Clear();
                     currentPlacement = 1;
-                    AddNewVideoGame(ref currentPlacement);
+                    AddNewVideoGame();
+                    currentPlacement = 0;
+                    Console.Clear();
+                    break;
+                case ConsoleKey.DownArrow:
+                    if (currentPlacement < dictVideoGames.Count - 1)
+                    {
+                        currentPlacement++;
+                    }
+                    Console.Clear();
+                    break;
+                case ConsoleKey.UpArrow:
+                    if (currentPlacement > 0)
+                    {
+                        currentPlacement--;
+                    }
                     Console.Clear();
                     break;
                 case ConsoleKey.Enter:
                     Console.Clear();
-                    break;
-                case ConsoleKey.DownArrow:
+                    //UpdateGame();
+                    dictVideoGames.Remove(currentPlacement);
+                    AddNewVideoGame(currentPlacement);
+                    currentPlacement = 0;
                     Console.Clear();
                     break;
-                case ConsoleKey.UpArrow:
-                    Console.Clear();
-                    break;
-                case ConsoleKey.RightArrow:
-                    Console.Clear();
-                    break;
-                case ConsoleKey.LeftArrow:
+                case ConsoleKey.Delete:
+                    dictVideoGames.Remove(currentPlacement);
+                    currentPlacement = 0;
                     Console.Clear();
                     break;
                 case ConsoleKey.Escape:
@@ -59,24 +79,38 @@ public class VideoGameCatalogue
         }
     }
 
-    private static void AddNewVideoGame(ref int currentPlacement)
+    private static void AddNewVideoGame(int id = 0)
     {
-        bool confirm = false;
         int count = 1;
-        int[] selectionTypes = new int[typesList.Count];
-        List<int> selectionedTypes = new List<int>();
-        int typesValue = 0;
-        CRUD.Type flags;
+        selection = new int[typesList.Count];
         string name = ReadString("Entrer un nom >> ");
         string studio = ReadString("Entrer le nom du studio >> ");
         int year = ReadInt("Entrer l'année de parution >> ");
 
-        for (int increment = 1; increment < selectionTypes.Length; increment++)
+        for (int increment = 1; increment < selection.Length; increment++)
         {
-            selectionTypes[increment] = count;
+            selection[increment] = count;
             count *= 2;
         }
+        int typesValue = SelectionTypesLogic(selection);
+        VideoGame newGame = new VideoGame(name, studio, typesValue, year);
+        if (id == 0)
+        {
+            dictVideoGames.Add(newGame.ID - 1, newGame);
+        }
+        else
+        {
+            dictVideoGames.Add(id, newGame);
+        }
 
+    }
+
+    private static int SelectionTypesLogic(int[] selectionTypes)
+    {
+        bool confirm = false;
+        CRUD.Type flags;
+        int typesValue = 0;
+        List<int> selectionedTypes = new List<int>();
         while (!confirm)
         {
             flags = (CRUD.Type)typesValue;
@@ -88,12 +122,9 @@ public class VideoGameCatalogue
                     Console.BackgroundColor = ConsoleColor.White;
                     Console.ForegroundColor = ConsoleColor.Black;
                 }
-                else
-                {
-                    Console.BackgroundColor = ConsoleColor.Black;
-                    Console.ForegroundColor = ConsoleColor.White;
-                }
                 Console.WriteLine(typesList[increment]);
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.White;
             }
             Console.WriteLine();
             Console.Write("Type sélectionné : ");
@@ -119,7 +150,7 @@ public class VideoGameCatalogue
                     Console.Clear();
                     break;
                 case ConsoleKey.DownArrow:
-                    if (currentPlacement <  selectionTypes.Length)
+                    if (currentPlacement < selectionTypes.Length)
                     {
                         currentPlacement++;
                     }
@@ -136,9 +167,7 @@ public class VideoGameCatalogue
                     break;
             }
         }
-        VideoGame newGame = new VideoGame(name, studio, typesValue, year);
-        dictVideoGames.Add(newGame.ID - 1, newGame);
-
+        return typesValue;
     }
 
     private static void DisplaySelectionned(CRUD.Type flags)
@@ -168,7 +197,14 @@ public class VideoGameCatalogue
     {
         for (int increment = 0; increment < table.Length; increment++)
         {
+            if (increment == currentPlacement)
+            {
+                Console.BackgroundColor = ConsoleColor.White;
+                Console.ForegroundColor = ConsoleColor.Black;
+            }
             Console.WriteLine($"{table[increment]}");
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
         }
     }
 
