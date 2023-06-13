@@ -84,7 +84,9 @@ public class VideoGameCatalogue
         int count = 1;
         selection = new int[typesList.Count];
         string name = ReadString("Entrer un nom >> ");
+        Console.Clear();
         string studio = ReadString("Entrer le nom du studio >> ");
+        Console.Clear();
         int year = ReadInt("Entrer l'année de parution >> ");
 
         for (int increment = 1; increment < selection.Length; increment++)
@@ -113,6 +115,8 @@ public class VideoGameCatalogue
         List<int> selectionedTypes = new List<int>();
         while (!confirm)
         {
+            Console.Clear();
+            Console.WriteLine("|ENTER|\t:\tAjouter/Supprimer\n|▲||▼|\t:\tNavigation\n|SPACE|\t:\tConfirmer\n\n");
             flags = (CRUD.Type)typesValue;
             //Console.WriteLine(currentPlacement + " | " + typesValue);
             for (int increment = 1; increment < selectionTypes.Length; increment++)
@@ -286,7 +290,7 @@ public class VideoGameCatalogue
         int number;
         do
         {
-            Console.WriteLine(msg);
+            Console.Write(msg);
         } while(!(int.TryParse(Console.ReadLine(), out number)));
         return number;
     }
